@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
 using Tanks;
+using Photon.Pun;
 
 namespace Complete
 {
-    public class TankMovement : MonoBehaviour
+    public class TankMovement : MonoBehaviourPunCallbacks
     {
         public int m_PlayerNumber = 1;              // Used to identify which tank belongs to which player.  This is set by this tank's manager.
         public float m_Speed = 12f;                 // How fast the tank moves forward and back.
@@ -31,8 +32,9 @@ namespace Complete
         }
 
 
-        private void OnEnable()
+        public override void OnEnable()
         {
+            base.OnEnable();
             // When the tank is turned on, make sure it's not kinematic.
             m_Rigidbody.isKinematic = false;
 
@@ -51,8 +53,9 @@ namespace Complete
         }
 
 
-        private void OnDisable()
+        public override void OnDisable()
         {
+            base.OnDisable();
             // When the tank is turned off, set it to kinematic so it stops moving.
             m_Rigidbody.isKinematic = true;
 
@@ -156,6 +159,14 @@ namespace Complete
             Vector3 turnVector = turnRotation.eulerAngles;
 
             turret.Rotate(turnVector);
+
+            photonView.RPC("TurretSync", RpcTarget.Others, turret.rotation);
+        }
+
+        [PunRPC]
+        private void TurretSync(Quaternion quaternion)
+        {
+            turret.rotation = quaternion;
         }
     }
 }
